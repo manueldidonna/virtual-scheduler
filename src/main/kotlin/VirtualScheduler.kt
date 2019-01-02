@@ -32,6 +32,8 @@ class VirtualScheduler : Continuation<Unit> {
 
     /**
      * Create a continuation from [block] to be resumed on [run]
+     *
+     * @see [schedule]
      */
     internal fun createScheduledRoutine(startDelayInMillis: Long, tag: String, block: Routine): State {
         return State(
@@ -44,6 +46,8 @@ class VirtualScheduler : Continuation<Unit> {
     /**
      * Create a [State] suspending the current routine
      * it allows other states to be executed on [run] according to their priority.
+     *
+     * @see [anonymous] [children]
      */
     internal suspend fun suspendRoutine(millis: Long, tag: String) {
         suspendCoroutine { cont: Continuation<Unit> ->
@@ -53,6 +57,8 @@ class VirtualScheduler : Continuation<Unit> {
 
     /**
      * Return true if [tag] is allowed (not discarded) or false otherwise
+     *
+     * @see [children] [alive]
      */
     internal fun validateTag(tag: String): Boolean {
         return !discardedTags.contains(tag)

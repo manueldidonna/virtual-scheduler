@@ -1,10 +1,9 @@
 /**
- * Each schedule wraps a sequence of sequentially actions.
- * You can't discard the schedule if it's been evaluated but you can abort actions after each suspension point
+ * A schedule wraps a sequence of sequentially actions.
+ * All schedules are registered before their [block]s have been evaluated.
  *
- * @param startDelayInMillis an initial delay before the execution of [block]
- * @param tag used to discard the schedule. Within [block] it's [ScheduleContext.scheduleTag]
- * @param block is lazy evaluated
+ * A schedule can't be discarded if it's been evaluated.
+ * Use [children], [alive], [wait] to still abort actions within them.
  *
  * @return [VirtualScheduler] instance
  */
@@ -16,17 +15,22 @@ fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block:
 }
 
 /**
- * Anonymous create a suspension point that can't be deleted by tag within a schedule.
- * If the schedule has been evaluated, [block] [AnonymousBlock] will surely executes
+ * Anonymous create a suspension point delayed by [delayInMillis].
+ * It can't be deleted by tag within a schedule.
+ * If the schedule has been evaluated, [block] [AnonymousBlock] will surely executes.
+ *
+ * It's lazy evaluated within a schedule.
  */
-suspend fun ScheduleContext.anonymous(timeInMillis: Long = 0L, block: AnonymousBlock) {
-    virtualScheduler.suspendRoutine(timeInMillis, "")
+suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: AnonymousBlock) {
+    virtualScheduler.suspendRoutine(delayInMillis, "")
     block()
 }
 
 /**
- * Children wraps many actions under the same tag allowing them to be aborted easily.
- * It also checks if [tag] is still valid before it evaluates [block]
+ * Children wraps actions under the same tag allowing them to be aborted easily.
+ * It also checks if [tag] is still valid before it evaluates [block].
+ *
+ * It's lazy evaluated within a schedule.
  */
 suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: ChildrenBlock) {
     virtualScheduler.suspendRoutine(0, "")
@@ -35,10 +39,24 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
 }
 
 /**
- * Alive checks if the receiver [BaseContext.tag] is still valid and then it invokes [block]
+ * Alive checks if the receiver [BaseContext.tag]
+ * is still valid and then it invokes [block].
+ *
  * It's lazy evaluated within a schedule.
  */
 suspend fun BaseContext.alive(block: suspend () -> Unit) {
     if (!this.virtualScheduler.validateTag(this.tag)) return
+    block()
+}
+
+/**
+ * Wait create a suspension point delayed by [delayInMillis].
+ * Check if the receiver [ChildrenContext.childrenTag] is still valid.
+ *
+ * It's lazy evaluated within a schedule.
+ */
+suspend fun ChildrenContext.wait(delayInMillis: Long, block: suspend () -> Unit) {
+    if (!this.virtualScheduler.validateTag(this.childrenTag)) return
+    this.virtualScheduler.suspendRoutine(delayInMillis, this.childrenTag)
     block()
 }

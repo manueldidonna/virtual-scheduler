@@ -7,13 +7,15 @@ import kotlin.coroutines.resume
 import kotlin.coroutines.suspendCoroutine
 
 /**
- * Manage a queue of [State] to schedule actions according to their priority.
- * All of them act sequentially.
- * Unless you use multiple instances of this class, you won't achieve parallelism.
+ * Manage a queue of [SuspensionPoint] to schedule actions
+ * according to their priority. All of them act sequentially.
+ *
+ * Unless you use multiple instances of this class,
+ * you won't achieve parallelism.
  */
 class VirtualScheduler : Continuation<Unit> {
 
-    private val states = PriorityQueue<State>()
+    private val points = PriorityQueue<SuspensionPoint>()
     private val discardedTags = hashSetOf<String>()
     private val isRunning = AtomicBoolean(false)
 
@@ -35,23 +37,23 @@ class VirtualScheduler : Continuation<Unit> {
      *
      * @see [schedule]
      */
-    internal fun createScheduledRoutine(startDelayInMillis: Long, tag: String, block: Routine): State {
-        return State(
+    internal fun createScheduledRoutine(startDelayInMillis: Long, tag: String, block: Routine): SuspensionPoint {
+        return SuspensionPoint(
             time = time + startDelayInMillis,
             cont = block.createCoroutine(receiver = this, completion = this),
             tag = tag
-        ).also { state -> states.add(state) }
+        ).also { point -> points.add(point) }
     }
 
     /**
-     * Create a [State] suspending the current routine
+     * Create a [SuspensionPoint] suspending the current routine
      * it allows other states to be executed on [run] according to their priority.
      *
-     * @see [anonymous] [children]
+     * @see [anonymous] [children] [wait]
      */
     internal suspend fun suspendRoutine(millis: Long, tag: String) {
         suspendCoroutine { cont: Continuation<Unit> ->
-            states.add(State(time = millis + time, cont = cont, tag = tag))
+            points.add(SuspensionPoint(time = millis + time, cont = cont, tag = tag))
         }
     }
 
@@ -82,10 +84,10 @@ class VirtualScheduler : Continuation<Unit> {
     }
 
     /**
-     * Delete all saved states. Interrupt the 'while block' within [run]
+     * Delete all saved points. Interrupt the 'while block' within [run]
      */
     fun clear() {
-        states.clear()
+        points.clear()
     }
 
     /**
@@ -97,7 +99,7 @@ class VirtualScheduler : Continuation<Unit> {
     suspend fun run() {
         if (isRunning.get()) return
         isRunning.set(true)
-        var next: State? = states.poll()
+        var next: SuspensionPoint? = points.poll()
         while (next != null) {
             if (!discardedTags.contains(next.tag)) {
                 val timeToWait = next.time - time
@@ -110,7 +112,7 @@ class VirtualScheduler : Continuation<Unit> {
                 next.cont.resume(Unit)
             }
             // Pull the next
-            next = states.poll()
+            next = points.poll()
         }
         isRunning.set(false)
     }

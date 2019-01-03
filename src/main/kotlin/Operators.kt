@@ -8,6 +8,7 @@
  * @return [VirtualScheduler] instance
  */
 fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block: ScheduleBlock): VirtualScheduler {
+    //TODO: schedule creation isn't lazy as the evaluation of their blocks. So they cannot be discarded.
     createScheduledRoutine(startDelayInMillis, tag) {
         ScheduleContext(virtualScheduler = this, scheduleTag = tag).block()
     }
@@ -45,6 +46,8 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
  * It's lazy evaluated within a schedule.
  */
 suspend fun BaseContext.alive(block: suspend () -> Unit) {
+    //TODO: alive doesn't suspend the routine.
+    // It doesn't allow other points to be executed according to their priority
     if (!this.virtualScheduler.validateTag(this.tag)) return
     block()
 }
@@ -58,5 +61,6 @@ suspend fun BaseContext.alive(block: suspend () -> Unit) {
 suspend fun ChildrenContext.wait(delayInMillis: Long, block: suspend () -> Unit) {
     if (!this.virtualScheduler.validateTag(this.childrenTag)) return
     this.virtualScheduler.suspendRoutine(delayInMillis, this.childrenTag)
+    if (!this.virtualScheduler.validateTag(this.childrenTag)) return
     block()
 }

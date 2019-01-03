@@ -47,7 +47,7 @@ class VirtualScheduler : Continuation<Unit> {
 
     /**
      * Create a [SuspensionPoint] suspending the current routine
-     * it allows other states to be executed on [run] according to their priority.
+     * it allows other points to be executed on [run] according to their priority.
      *
      * @see [anonymous] [children] [wait]
      */
@@ -101,16 +101,14 @@ class VirtualScheduler : Continuation<Unit> {
         isRunning.set(true)
         var next: SuspensionPoint? = points.poll()
         while (next != null) {
-            if (!discardedTags.contains(next.tag)) {
-                val timeToWait = next.time - time
-                if (timeToWait > 0) {
-                    // process time advance
-                    delay(timeToWait)
-                }
-                time = next.time
-                // Re-run the routine
-                next.cont.resume(Unit)
+            val timeToWait = next.time - time
+            if (timeToWait > 0) {
+                // process time advance
+                delay(timeToWait)
             }
+            time = next.time
+            // Re-run the routine
+            next.cont.resume(Unit)
             // Pull the next
             next = points.poll()
         }

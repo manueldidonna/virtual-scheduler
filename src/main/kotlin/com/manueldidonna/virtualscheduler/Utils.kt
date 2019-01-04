@@ -1,3 +1,5 @@
+package com.manueldidonna.virtualscheduler
+
 import kotlinx.coroutines.*
 
 fun VirtualScheduler.run(dispatcher: CoroutineDispatcher): Job {

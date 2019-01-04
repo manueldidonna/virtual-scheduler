@@ -1,3 +1,5 @@
+package com.manueldidonna.virtualscheduler
+
 /**
  * A schedule wraps a sequence of sequentially actions.
  * All schedules are registered before their [block]s have been evaluated.

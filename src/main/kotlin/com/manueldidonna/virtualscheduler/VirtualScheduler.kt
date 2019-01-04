@@ -1,3 +1,5 @@
+package com.manueldidonna.virtualscheduler
+
 import kotlinx.coroutines.delay
 import java.util.*
 import java.util.concurrent.atomic.AtomicBoolean
@@ -20,7 +22,7 @@ class VirtualScheduler : Continuation<Unit> {
     private val isRunning = AtomicBoolean(false)
 
     /**
-     * The current time of the VirtualScheduler. Increased within [run]
+     * The current time of the com.manueldidonna.virtualscheduler.VirtualScheduler. Increased within [run]
      */
     private var time: Long = 0
 
@@ -88,6 +90,7 @@ class VirtualScheduler : Continuation<Unit> {
      */
     fun clear() {
         points.clear()
+        discardedTags.clear()
     }
 
     /**

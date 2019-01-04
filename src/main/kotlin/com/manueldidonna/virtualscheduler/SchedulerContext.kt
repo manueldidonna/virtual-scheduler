@@ -1,3 +1,5 @@
+package com.manueldidonna.virtualscheduler
+
 import java.io.Serializable
 import kotlin.coroutines.CoroutineContext
 import kotlin.coroutines.EmptyCoroutineContext
@@ -14,5 +16,5 @@ object SchedulerContext : CoroutineContext, Serializable {
     override fun plus(context: CoroutineContext): CoroutineContext = context
     override fun minusKey(key: CoroutineContext.Key<*>): CoroutineContext = this
     override fun hashCode(): Int = 0
-    override fun toString(): String = "SchedulerContext"
+    override fun toString(): String = "com.manueldidonna.virtualscheduler.SchedulerContext"
 }

@@ -1,5 +1,6 @@
-import kotlin.coroutines.Continuation
+package com.manueldidonna.virtualscheduler
 
+import kotlin.coroutines.Continuation
 
 /**
  * A point in the flow of a routine scheduled by [VirtualScheduler] and resumed after its creation

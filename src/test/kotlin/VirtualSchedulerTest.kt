@@ -16,6 +16,34 @@ class VirtualSchedulerTest {
     }
 
     @Test
+    fun clearTheScheduler() {
+        runBlocking {
+            // arrange
+            val commonTag = "schedule"
+            val action: () -> Unit = mock()
+            val anonAction: () -> Unit = mock()
+
+            // trigger
+            vs.schedule(tag = commonTag) {
+                children {
+                    wait(300L) { action() } // 300L - invoked
+                    // 350L % 400L invoked.
+                    // the scheduler is cleared before action is invoked Before 450L is invoked
+                    for (i in 0 until 3)
+                        wait(50L) { action() }
+                }
+                anonymous { anonAction() }
+            }.schedule(449L, tag = commonTag){
+                vs.clear() // 449L because virtual scheduler priority system is wonderful
+            }.run()
+
+            // validation
+            verify(action, times(3)).invoke()
+            verify(anonAction, times(0)).invoke()
+        }
+    }
+
+    @Test
     fun orderOfEvaluationForSchedules() {
         runBlocking {
             // arrange

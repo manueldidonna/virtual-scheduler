@@ -8,15 +8,17 @@
  * @return [VirtualScheduler] instance
  */
 fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block: ScheduleBlock): VirtualScheduler {
-    //TODO: schedule creation isn't lazy as the evaluation of their blocks. So they cannot be discarded.
+    if (!this.validateTag(tag)) return this
     createScheduledRoutine(startDelayInMillis, tag) {
-        ScheduleContext(virtualScheduler = this, scheduleTag = tag).block()
+        if (this.validateTag(tag)){
+            ScheduleContext(virtualScheduler = this, scheduleTag = tag).block()
+        }
     }
     return this
 }
 
 /**
- * Anonymous create a suspension point delayed by [delayInMillis].
+ * Anonymous creates a suspension point delayed by [delayInMillis].
  * It can't be deleted by tag within a schedule.
  * If the schedule has been evaluated, [block] [AnonymousBlock] will surely executes.
  *
@@ -30,6 +32,7 @@ suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: Anonymous
 /**
  * Children wraps actions under the same tag allowing them to be aborted easily.
  * It also checks if [tag] is still valid before it evaluates [block].
+ * Children does create a suspension point.
  *
  * It's lazy evaluated within a schedule.
  */
@@ -42,18 +45,17 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
 /**
  * Alive checks if the receiver [BaseContext.tag]
  * is still valid and then it invokes [block].
+ * Alive doesn't create a suspension point.
  *
  * It's lazy evaluated within a schedule.
  */
 suspend fun BaseContext.alive(block: suspend () -> Unit) {
-    //TODO: alive doesn't suspend the routine.
-    // It doesn't allow other points to be executed according to their priority
     if (!this.virtualScheduler.validateTag(this.tag)) return
     block()
 }
 
 /**
- * Wait create a suspension point delayed by [delayInMillis].
+ * Wait creates a suspension point delayed by [delayInMillis].
  * Check if the receiver [ChildrenContext.childrenTag] is still valid.
  *
  * It's lazy evaluated within a schedule.

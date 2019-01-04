@@ -100,11 +100,44 @@ class VirtualSchedulerTest {
     }
 
     @Test
+    fun tagDiscardedAndThenRestored() {
+        runBlocking {
+            // arrange
+            val tagToDiscard = "schedule"
+            val actionToNotInvoke: () -> Unit = mock()
+            val actionToInvoke: () -> Unit = mock()
+
+            // trigger
+            vs.schedule(tag = tagToDiscard) {
+                children {
+                    // "traitor" schedule happen before this 'wait' block and it discards the tag
+                    wait(100L) {
+                        actionToNotInvoke()
+                    }
+                }
+                // this children restores the tag.
+                // It overrides the schedule tag so it isn't discarded with the parent schedule
+                children("foreigner") {
+                    alive { vs.restoreTag(scheduleTag) }
+                }
+                // alive invokes its block because of "foreigner" restoration
+                alive { actionToInvoke() }
+            }.schedule(70L, "traitor") {
+                vs.discardTag(tagToDiscard)
+            }.run()
+
+            // validation
+            verify(actionToInvoke, times(1)).invoke()
+            verify(actionToNotInvoke, times(0)).invoke()
+        }
+    }
+
+    @Test
     fun anonymousBlocksSurviveScheduleDestruction() {
         runBlocking {
             // arrange
-            val action: () -> Unit = mock()
             val tagToDiscard = "schedule"
+            val action: () -> Unit = mock()
 
             // trigger
             vs.schedule(100L, tagToDiscard) {

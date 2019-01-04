@@ -43,13 +43,13 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
 }
 
 /**
- * Alive checks if the receiver [BaseContext.tag]
+ * Alive checks if the receiver [OperatorContext.tag]
  * is still valid and then it invokes [block].
  * Alive doesn't create a suspension point.
  *
  * It's lazy evaluated within a schedule.
  */
-suspend fun BaseContext.alive(block: suspend () -> Unit) {
+suspend fun OperatorContext.alive(block: suspend () -> Unit) {
     if (!this.virtualScheduler.validateTag(this.tag)) return
     block()
 }

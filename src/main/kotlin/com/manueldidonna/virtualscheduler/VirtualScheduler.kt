@@ -22,7 +22,7 @@ class VirtualScheduler : Continuation<Unit> {
     private val isRunning = AtomicBoolean(false)
 
     /**
-     * The current time of the com.manueldidonna.virtualscheduler.VirtualScheduler. Increased within [run]
+     * The current time of the VirtualScheduler. Increased within [run]
      */
     private var time: Long = 0
 

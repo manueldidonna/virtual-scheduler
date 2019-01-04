@@ -21,7 +21,7 @@ class VirtualSchedulerTest {
     fun clearTheScheduler() {
         runBlocking {
             // arrange
-            val commonTag = "com.manueldidonna.virtualscheduler.schedule"
+            val commonTag = "schedule"
             val action: () -> Unit = mock()
             val anonAction: () -> Unit = mock()
 
@@ -92,7 +92,7 @@ class VirtualSchedulerTest {
                 vs.discardTag(tagToDiscard) // (tagToDiscard, 500) is discarded before the execution of its block
             }.schedule(600L, tag = "restoreTag") {
                 vs.restoreTag(tagToDiscard) // (tagToDiscard, 700) is restored before the execution of its block
-            }.run() // the scheduler will com.manueldidonna.virtualscheduler.wait anyway for 700 millis.
+            }.run() // the scheduler will wait anyway for 700 millis.
             // Validation checks are executed before and after the time processing, not during the process
 
             // validation
@@ -105,24 +105,24 @@ class VirtualSchedulerTest {
     fun tagDiscardedAndThenRestored() {
         runBlocking {
             // arrange
-            val tagToDiscard = "com.manueldidonna.virtualscheduler.schedule"
+            val tagToDiscard = "schedule"
             val actionToNotInvoke: () -> Unit = mock()
             val actionToInvoke: () -> Unit = mock()
 
             // trigger
             vs.schedule(tag = tagToDiscard) {
                 children {
-                    // "traitor" com.manueldidonna.virtualscheduler.schedule happen before this 'com.manueldidonna.virtualscheduler.wait' block and it discards the tag
+                    // "traitor" schedule happen before this 'wait' block and it discards the tag
                     wait(100L) {
                         actionToNotInvoke()
                     }
                 }
-                // this com.manueldidonna.virtualscheduler.children restores the tag.
-                // It overrides the com.manueldidonna.virtualscheduler.schedule tag so it isn't discarded with the parent com.manueldidonna.virtualscheduler.schedule
+                // this children restores the tag.
+                // It overrides the schedule tag so it isn't discarded with the parent schedule
                 children("foreigner") {
                     alive { vs.restoreTag(scheduleTag) }
                 }
-                // com.manueldidonna.virtualscheduler.alive invokes its block because of "foreigner" restoration
+                // alive invokes its block because of "foreigner" restoration
                 alive { actionToInvoke() }
             }.schedule(70L, "traitor") {
                 vs.discardTag(tagToDiscard)
@@ -138,7 +138,7 @@ class VirtualSchedulerTest {
     fun anonymousBlocksSurviveScheduleDestruction() {
         runBlocking {
             // arrange
-            val tagToDiscard = "com.manueldidonna.virtualscheduler.schedule"
+            val tagToDiscard = "schedule"
             val action: () -> Unit = mock()
 
             // trigger

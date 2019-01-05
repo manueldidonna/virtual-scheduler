@@ -32,7 +32,7 @@ suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: Anonymous
 }
 
 /**
- * Children wraps actions under the same tag allowing them to be aborted easily.
+ * Children wraps actions under the same internalTag allowing them to be aborted easily.
  * It also checks if [tag] is still valid before it evaluates [block].
  * Children does create a suspension point.
  *
@@ -45,14 +45,14 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
 }
 
 /**
- * Alive checks if the receiver [OperatorContext.tag]
+ * Alive checks if the receiver [OperatorContext.internalTag]
  * is still valid and then it invokes [block].
  * Alive doesn't create a suspension point.
  *
  * It's lazy evaluated within a schedule.
  */
 suspend fun OperatorContext.alive(block: suspend () -> Unit) {
-    if (!this.virtualScheduler.validateTag(this.tag)) return
+    if (!this.virtualScheduler.validateTag(this.internalTag)) return
     block()
 }
 

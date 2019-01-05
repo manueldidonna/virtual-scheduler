@@ -89,9 +89,11 @@ class VirtualSchedulerTest {
             }.schedule(700L, tag = tagToDiscard) {
                 actionToInvoke() // (tagToDiscard, 700) is registered as suspension point
             }.schedule(200L, tag = "discardTag") {
-                vs.discardTag(tagToDiscard) // (tagToDiscard, 500) is discarded before the execution of its block
+                // (tagToDiscard, 500) is discarded before the execution of its block
+                vs.discardTag(tagToDiscard)
             }.schedule(600L, tag = "restoreTag") {
-                vs.restoreTag(tagToDiscard) // (tagToDiscard, 700) is restored before the execution of its block
+                // (tagToDiscard, 700) is restored before the execution of its block
+                vs.restoreTag(tagToDiscard)
             }.run() // the scheduler will wait anyway for 700 millis.
             // Validation checks are executed before and after the time processing, not during the process
 
@@ -117,7 +119,7 @@ class VirtualSchedulerTest {
                         actionToNotInvoke()
                     }
                 }
-                // this children restores the tag.
+                // this children restores the internalTag.
                 // It overrides the schedule tag so it isn't discarded with the parent schedule
                 children("foreigner") {
                     alive { vs.restoreTag(scheduleTag) }

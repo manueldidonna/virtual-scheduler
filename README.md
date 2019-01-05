@@ -10,7 +10,7 @@ A library to schedule actions according to a temporal order.
 
 ## Current Version
 
-```
+```kotlin
 virtual_scheduler_version = X.Y.Z
 ```
 
@@ -33,20 +33,20 @@ implementation
 ## Quick Start
 The entire library can be used through an instance of `VirtualScheduler` and several extension functions.
 
-```
+```kotlin
 val vs = VirtualScheduler()
 ```
 
 ### Create a schedule
 Each schedule returns an instance of `VirtualScheduler`
 
-```
+```kotlin
 vs.schedule(startDelayInMillis = 100L, tag = "first"){
     doSomething() // after 100 milliseconds
 }
 ```
 ### Combine more schedules
-```
+```kotlin
 vs.schedule(100L, "first"){
     doSomething() // after 100 milliseconds
 }.schedule(300L, "second"){
@@ -60,7 +60,7 @@ Use `suspend fun VirtualScheduler.run()` to start scheduling in the current thre
 ### Discard a schedule
 [Here](https://github.com/manueldidonna/VirtualScheduler/blob/2e8e04c1a5bf82e728683da7230acf4899ca382b/src/test/kotlin/com/manueldidonna/virtualscheduler/VirtualSchedulerTest.kt#L79-L102) an advanced example.
 
-```
+```kotlin
 vs.discardTag(tag = "first") // tag used for the schedule 
 ```
 A schedule can not be deleted while it is being processed by the scheduler.
@@ -72,7 +72,7 @@ Children wraps actions under the same tag allowing them to be aborted together.
 **It's lazy evaluated within a schedule.**
 > Nested children aren't yet fully supported. If their tag is omitted, children will always inherit it from the schedule
 
-```
+```kotlin
 vs.schedule(tag = commonTag) {
     doSomething()
     // if tag is omitted, children inherits it from parent schedule
@@ -86,7 +86,7 @@ Wait creates a suspension point delayed by **@parameter:delayInMillis**.
 
 **It's lazy evaluated within a schedule.**
 > Wait is **only** allowed within children
-```
+```kotlin
 vs.schedule(tag = commonTag) {
     children {
         wait(300L) { action() } // 300L - invoked
@@ -105,7 +105,7 @@ Alive checks if the receiver **(schedule or children)** is still active **(not d
 
 **It's lazy evaluated within a schedule.**
 > Alive doesn't suspend the routine
-```
+```kotlin
 vs.restoreTag(tag = "foreigner")
 
 /** within a schedule */

@@ -45,7 +45,7 @@ vs.schedule(startDelayInMillis = 100L, tag = "first"){
     doSomething() // after 100 milliseconds
 }
 ```
-### Combine more schedules
+### Combines more schedules
 ```kotlin
 vs.schedule(100L, "first"){
     doSomething() // after 100 milliseconds
@@ -117,4 +117,24 @@ children("foreigner") {
 alive { actionToInvoke() } // alive's receiver is the schedule
 
 actionToNotInvoke() // error, this action will be invoked because there isn't any validity check
+```
+## Anonymous
+Anonymous is a particular wrapper. It creates a suspension point delayed by **@parameter:delayInMillis = 0L::default**.
+
+**It's lazy evaluated within a schedule.**
+> If the scedule has been started, Anonymous will surely executes.
+```kotlin
+vs.schedule(100L, tagToDiscard) {
+    children {
+        wait(100L) {
+            action() // not invoked, schedule deleted by traitor
+        }
+    }
+    anonymous {
+    	// invoked because the schedule has been started and anonymous can't be suppressed
+        action()
+    }
+}.schedule(190L, "traitor") {
+    vs.discardTag(tagToDiscard)
+}.run()
 ```

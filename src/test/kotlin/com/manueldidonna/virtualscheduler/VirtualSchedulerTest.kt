@@ -161,4 +161,61 @@ class VirtualSchedulerTest {
             verify(action, times(1)).invoke()
         }
     }
+
+    @Test
+    fun correctOrderOfExecution() {
+        runBlocking {
+            // arrange
+            val actions = Array(9) { mock<() -> Unit>() }
+            val commonTag = "schedule"
+
+            // trigger
+            vs.schedule(500L, tag = commonTag) {
+                alive { actions[1].invoke() } // 500
+                children {
+                    wait(100L) {
+                        // wait4 is executed after anonymous3.
+                        // each children create a suspension point of 0 millis.
+                        // Thanks to this sp, the scheduler jump to wait2
+                        // and it creates anonymous3 suspension point
+                        // with the same priority of the next wait4 sp
+                        // but the order of creation prevails.
+                        actions[4].invoke() // 600
+                    }
+                    wait(200L) {
+                        actions[5].invoke() // 800
+                    }
+                    alive { actions[6].invoke() } // 800
+                    wait(300L) {
+                        actions[8].invoke() // 1100
+                    }
+                }
+            }.schedule(200L, tag = commonTag) {
+                alive { actions[0].invoke() } // 200
+                children {
+                    wait(300L) {
+                        actions[2].invoke() // 500
+                    }
+                }
+                anonymous(100L) {
+                    actions[3].invoke() // 600
+                }
+            }.schedule(1100L, commonTag) {
+                alive { actions[7].invoke() }
+            }.run()
+
+            // validation
+            inOrder(*actions) {
+                verify(actions[0]).invoke()
+                verify(actions[1]).invoke()
+                verify(actions[2]).invoke()
+                verify(actions[3]).invoke()
+                verify(actions[4]).invoke()
+                verify(actions[5]).invoke()
+                verify(actions[6]).invoke()
+                verify(actions[7]).invoke()
+                verify(actions[8]).invoke()
+            }
+        }
+    }
 }

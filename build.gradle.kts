@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.manueldidonna"
-version = "1.0"
+version = "1.0.0"
 
 repositories {
     mavenCentral()
@@ -19,7 +19,9 @@ dependencies {
     testImplementation("com.nhaarman.mockitokotlin2:mockito-kotlin:2.1.0")
 }
 
-tasks.withType<KotlinCompile> {
-    kotlinOptions.jvmTarget = "1.8"
+tasks {
+    withType<KotlinCompile> {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 }
 

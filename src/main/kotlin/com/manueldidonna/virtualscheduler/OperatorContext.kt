@@ -3,6 +3,8 @@ package com.manueldidonna.virtualscheduler
 abstract class OperatorContext {
     internal abstract val internalTag: String
     internal abstract val virtualScheduler: VirtualScheduler
+
+    fun isAlive(): Boolean = virtualScheduler.validateTag(internalTag)
 }
 
 data class ChildrenContext internal constructor(

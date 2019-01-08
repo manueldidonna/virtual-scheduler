@@ -220,6 +220,31 @@ class VirtualSchedulerTest {
     }
 
     @Test
+    fun whileIsAlive() {
+        runBlocking {
+            // arrange
+            val tag = "schedule"
+            val action: () -> Unit = mock()
+
+            // trigger
+            vs.schedule(tag = tag) {
+                children {
+                    while (isAlive()) {
+                        wait(50L) {
+                            action()
+                        }
+                    }
+                }
+            }.schedule(201L, tag = "traitor") {
+                vs.discardTag(tag)
+            }.run()
+
+            // validation
+            verify(action, times(4)).invoke()
+        }
+    }
+
+    @Test
     fun deadAndAliveOperators() {
         runBlocking {
             // arrange

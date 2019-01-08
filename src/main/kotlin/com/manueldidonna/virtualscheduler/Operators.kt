@@ -12,7 +12,7 @@ package com.manueldidonna.virtualscheduler
 fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block: ScheduleBlock): VirtualScheduler {
     if (!this.validateTag(tag)) return this
     createScheduledRoutine(startDelayInMillis, tag) {
-        if (this.validateTag(tag)){
+        if (this.validateTag(tag)) {
             ScheduleContext(virtualScheduler = this, scheduleTag = tag).block()
         }
     }
@@ -54,6 +54,19 @@ suspend fun ScheduleContext.children(tag: String = this.scheduleTag, block: Chil
 suspend fun OperatorContext.alive(block: suspend () -> Unit) {
     if (!this.virtualScheduler.validateTag(this.internalTag)) return
     block()
+}
+
+/**
+ * Dead checks if the receiver [OperatorContext.internalTag]
+ * is don't valid and then it invokes [block].
+ * Dead is the counterpart of Alive.
+ * Dead doesn't create a suspension point.
+ *
+ * It's lazy evaluated within a schedule.
+ */
+suspend fun OperatorContext.dead(block: suspend () -> Unit) {
+    if (!this.virtualScheduler.validateTag(this.internalTag))
+        block()
 }
 
 /**

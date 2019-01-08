@@ -218,4 +218,24 @@ class VirtualSchedulerTest {
             }
         }
     }
+
+    @Test
+    fun deadAndAliveOperators() {
+        runBlocking {
+            // arrange
+            val actionToInvoke: () -> Unit = mock()
+            val actionToNotInvoke: () -> Unit = mock()
+
+            // trigger
+            vs.schedule(tag = "schedule") {
+                vs.discardTag(scheduleTag)
+                alive { actionToNotInvoke() }
+                dead { actionToInvoke() }
+            }.run()
+
+            // validation
+            verify(actionToInvoke, times(1)).invoke()
+            verify(actionToNotInvoke, times(0)).invoke()
+        }
+    }
 }

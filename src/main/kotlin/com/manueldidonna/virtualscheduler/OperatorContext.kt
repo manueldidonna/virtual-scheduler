@@ -7,11 +7,11 @@ abstract class OperatorContext {
     fun isAlive(): Boolean = virtualScheduler.validateTag(internalTag)
 }
 
-data class ChildrenContext internal constructor(
+data class WrapperContext internal constructor(
     override val virtualScheduler: VirtualScheduler,
-    val childrenTag: String
+    val wrapperTag: String
 ) : OperatorContext() {
-    override val internalTag: String = childrenTag
+    override val internalTag: String = wrapperTag
 }
 
 data class ScheduleContext internal constructor(

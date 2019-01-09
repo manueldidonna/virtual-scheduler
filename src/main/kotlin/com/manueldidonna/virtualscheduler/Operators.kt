@@ -20,15 +20,15 @@ fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block:
 }
 
 /**
+ * Anonymous is a wrapper and it can't be deleted by tag.
+ * Every statements within anonymous will inherit an empty tag.
  * Anonymous creates a suspension point delayed by [delayInMillis].
- * It can't be deleted by tag within a schedule.
- * If the schedule has been evaluated, [block] [AnonymousBlock] will surely executes.
  *
- * It's lazy evaluated within a schedule.
+ * It's lazy evaluated within a schedule or another wrapper.
  */
 suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: AnonymousBlock) {
     virtualScheduler.suspendRoutine(delayInMillis, "")
-    block()
+    WrapperContext(virtualScheduler = this.virtualScheduler, wrapperTag = "").block()
 }
 
 /**
@@ -42,7 +42,7 @@ suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: Anonymous
 suspend fun OperatorContext.children(tag: String = this.internalTag, block: ChildrenBlock) {
     virtualScheduler.suspendRoutine(0, "")
     if (!virtualScheduler.validateTag(tag)) return
-    ChildrenContext(virtualScheduler = virtualScheduler, childrenTag = tag).block()
+    WrapperContext(virtualScheduler = virtualScheduler, wrapperTag = tag).block()
 }
 
 /**

@@ -65,7 +65,7 @@ class VirtualScheduler : Continuation<Unit> {
      * @see [children] [alive]
      */
     internal fun validateTag(tag: String): Boolean {
-        return !discardedTags.contains(tag)
+        return if (tag.isEmpty()) true else !discardedTags.contains(tag)
     }
 
     /**

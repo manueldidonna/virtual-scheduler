@@ -263,4 +263,24 @@ class VirtualSchedulerTest {
             verify(actionToNotInvoke, times(0)).invoke()
         }
     }
+
+    @Test
+    fun tagRestorationWithinDead() {
+        runBlocking {
+            // arrange
+            val action: () -> Unit = mock()
+
+            // trigger
+            vs.schedule(tag = "schedule") {
+                vs.discardTag(scheduleTag)
+                dead {
+                    vs.restoreTag(scheduleTag)
+                    alive { action() }
+                }
+            }.run()
+
+            // validation
+            verify(action, times(1)).invoke()
+        }
+    }
 }

@@ -53,6 +53,7 @@ class VirtualScheduler : Continuation<Unit> {
      *
      * @see [anonymous] [children] [wait]
      */
+    @PublishedApi
     internal suspend fun suspendRoutine(millis: Long, tag: String) {
         suspendCoroutine { cont: Continuation<Unit> ->
             points.add(SuspensionPoint(time = millis + time, cont = cont, tag = tag))
@@ -64,6 +65,7 @@ class VirtualScheduler : Continuation<Unit> {
      *
      * @see [children] [alive]
      */
+    @PublishedApi
     internal fun validateTag(tag: String): Boolean {
         return if (tag.isEmpty()) true else !discardedTags.contains(tag)
     }

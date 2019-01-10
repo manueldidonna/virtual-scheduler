@@ -26,23 +26,37 @@ fun VirtualScheduler.schedule(startDelayInMillis: Long = 0L, tag: String, block:
  *
  * It's lazy evaluated within a schedule or another wrapper.
  */
-suspend fun ScheduleContext.anonymous(delayInMillis: Long = 0L, block: AnonymousBlock) {
+suspend inline fun OperatorContext.anonymous(delayInMillis: Long = 0L, block: WrapperBlock) {
     virtualScheduler.suspendRoutine(delayInMillis, "")
     WrapperContext(virtualScheduler = this.virtualScheduler, wrapperTag = "").block()
 }
 
 /**
- * Children wraps actions under the same [tag].
- * Children checks if [tag] is still valid
- * and then it evaluates [block].
- * Children does always create an anonymous suspension point.
+ * Children is a wrapper and it creates an empty suspension point.
+ * Every statements within children will inherit the same tag.
+ * Children checks for [tag] validity before [block] execution.
  *
  * It's lazy evaluated within a schedule or another wrapper.
  */
-suspend fun OperatorContext.children(tag: String = this.internalTag, block: ChildrenBlock) {
+suspend inline fun OperatorContext.children(tag: String = this.internalTag, block: WrapperBlock) {
     virtualScheduler.suspendRoutine(0, "")
     if (!virtualScheduler.validateTag(tag)) return
     WrapperContext(virtualScheduler = virtualScheduler, wrapperTag = tag).block()
+}
+
+/**
+ * Wait checks if the receiver [OperatorContext.internalTag]
+ * is still valid and then it invokes [block].
+ * Wait creates a suspension point delayed by [delayInMillis].
+ * It does a check before and after the suspension.
+
+ * It's lazy evaluated within a schedule or another wrapper.
+ */
+suspend inline fun OperatorContext.wait(delayInMillis: Long, block: NoContextBlock) {
+    if (!this.virtualScheduler.validateTag(this.internalTag)) return
+    this.virtualScheduler.suspendRoutine(delayInMillis, this.internalTag)
+    if (!this.virtualScheduler.validateTag(this.internalTag)) return
+    block()
 }
 
 /**
@@ -52,7 +66,8 @@ suspend fun OperatorContext.children(tag: String = this.internalTag, block: Chil
  *
  * It's lazy evaluated within a schedule or another wrapper.
  */
-suspend fun OperatorContext.alive(block: suspend () -> Unit) {
+@Suppress("RedundantSuspendModifier")
+suspend inline fun OperatorContext.alive(block: NoContextBlock) {
     if (!this.virtualScheduler.validateTag(this.internalTag)) return
     block()
 }
@@ -64,22 +79,8 @@ suspend fun OperatorContext.alive(block: suspend () -> Unit) {
  *
  * It's lazy evaluated within a schedule or another wrapper.
  */
-suspend fun OperatorContext.dead(block: suspend () -> Unit) {
+@Suppress("RedundantSuspendModifier")
+suspend inline fun OperatorContext.dead(block: NoContextBlock) {
     if (this.virtualScheduler.validateTag(this.internalTag)) return
-    block()
-}
-
-/**
- * Wait checks if the receiver [OperatorContext.internalTag]
- * is still valid and then it invokes [block].
- * Wait creates a suspension point delayed by [delayInMillis].
- * It does a check before and after the suspension.
-
- * It's lazy evaluated within a schedule or another wrapper.
- */
-suspend fun OperatorContext.wait(delayInMillis: Long, block: suspend () -> Unit) {
-    if (!this.virtualScheduler.validateTag(this.internalTag)) return
-    this.virtualScheduler.suspendRoutine(delayInMillis, this.internalTag)
-    if (!this.virtualScheduler.validateTag(this.internalTag)) return
     block()
 }

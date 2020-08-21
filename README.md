@@ -1,35 +1,14 @@
-# VirtualScheduler
+# Virtual Scheduler
+
+> **This library was an experiment based on Continuation and Coroutines concepts**
 
 A library to schedule actions according to a temporal order. 
 
 - Written in kotlin (depends on [kotlinx.coroutines 1.1.0](https://github.com/Kotlin/kotlinx.coroutines))
-- Based on Continuation and Coroutines concepts
 - Nice, simple and extensible DSL
 - Suitable to write readable code
 - Easy cancellable actions **(easier than plain coroutines)**
 
-## Current Version
-
-```kotlin
-virtual_scheduler_version = X.Y.Z
-```
-
-## Gradle
-#### Jcenter
-
-Check that you have the jcenter repository.
-
-```
-// Add Jcenter to your repositories if needed
-repositories {
-	jcenter()    
-}
-```
-#### Dependencies
-
-```
-implementation
-```
 ## Quick Start
 The entire library can be used through an instance of `VirtualScheduler` and several extension functions.
 
